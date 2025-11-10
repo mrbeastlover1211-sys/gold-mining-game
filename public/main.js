@@ -956,13 +956,28 @@ function createMandatoryLandPurchaseModal() {
       <!-- Content area with glass morphism -->
       <div style="padding: 35px 30px;">
         
+        <!-- Step 1 indicator -->
+        <div style="text-align: center; margin-bottom: 25px;">
+          <div style="
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            display: inline-block;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,255,136,0.2);">
+            🎯 STEP 1: Purchase Land
+          </div>
+        </div>
+        
         <!-- Land visualization -->
         <div style="
           background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
           border: 1px solid rgba(255,255,255,0.1);
           border-radius: 20px;
           padding: 30px;
-          margin-bottom: 30px;
+          margin-bottom: 20px;
           backdrop-filter: blur(10px);
           text-align: center;
           position: relative;
@@ -993,6 +1008,14 @@ function createMandatoryLandPurchaseModal() {
             color: #00ff88;">
             Premium Mining Land
           </h3>
+          
+          <div style="
+            margin: 15px 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.8);">
+            Land purchase required to start
+          </div>
           
           <div style="
             display: grid;

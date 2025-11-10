@@ -855,7 +855,7 @@ function createMandatoryLandPurchaseModal() {
       justify-content: center;
       align-items: center;
       backdrop-filter: blur(15px);
-      animation: fadeIn 0.6s ease-out;">`
+      animation: fadeIn 0.6s ease-out;">
       
       <div class="modal-content" style="
         width: 95%;

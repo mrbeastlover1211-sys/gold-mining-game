@@ -1456,10 +1456,10 @@ function startV2Countdown() {
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
     
     // Update countdown elements if they exist
-    const daysEl = document.getElementById('countdown-days');
-    const hoursEl = document.getElementById('countdown-hours');
-    const minutesEl = document.getElementById('countdown-minutes');
-    const secondsEl = document.getElementById('countdown-seconds');
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
     
     if (daysEl) daysEl.textContent = days.toString().padStart(2, '0');
     if (hoursEl) hoursEl.textContent = hours.toString().padStart(2, '0');

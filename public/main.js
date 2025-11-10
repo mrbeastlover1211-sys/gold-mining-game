@@ -39,9 +39,20 @@ function updateStaticInfo() {
 }
 
 function renderShop() {
-  if (!state.config || !state.config.pickaxes) return;
+  console.log('🛒 renderShop() called');
+  
+  if (!state.config || !state.config.pickaxes) {
+    console.log('❌ renderShop: No config or pickaxes data available');
+    return;
+  }
   
   const grid = $('#pickaxeGrid');
+  if (!grid) {
+    console.error('❌ renderShop: #pickaxeGrid element not found in DOM!');
+    return;
+  }
+  
+  console.log('✅ renderShop: Found pickaxeGrid element, clearing content...');
   grid.innerHTML = '';
   
   const pickaxes = [
@@ -51,7 +62,9 @@ function renderShop() {
     { key: 'netherite', name: 'Netherite Pickaxe', rate: 10000, cost: state.config.pickaxes.netherite.costSol }
   ];
   
-  pickaxes.forEach(pickaxe => {
+  console.log('🔧 renderShop: Creating pickaxe items...');
+  
+  pickaxes.forEach((pickaxe, index) => {
     const item = document.createElement('div');
     item.className = 'pickaxe-item';
     
@@ -74,6 +87,8 @@ function renderShop() {
         iconSrc = 'assets/pickaxes/pickaxe-silver.png';
     }
     
+    console.log(`🔨 Creating ${pickaxe.key} pickaxe item (${index + 1}/4)`);
+    
     item.innerHTML = `
       <div class="pickaxe-header">
         <div class="pickaxe-icon ${pickaxe.key}">
@@ -94,7 +109,10 @@ function renderShop() {
       <button class="buy-btn" onclick="buyPickaxe('${pickaxe.key}')">Buy</button>
     `;
     grid.appendChild(item);
+    console.log(`✅ Added ${pickaxe.key} pickaxe to shop`);
   });
+  
+  console.log('🎉 renderShop: All pickaxe items created successfully');
 }
 
 function changeQuantity(pickaxeType, delta) {
@@ -1574,6 +1592,15 @@ async function initApp() {
   
   await loadConfig();
   await tryAutoConnect();
+  
+  // Ensure shop is rendered - retry if needed
+  setTimeout(() => {
+    if (!$('#pickaxeGrid')?.hasChildNodes()) {
+      console.log('🔄 Pickaxe shop is empty, retrying renderShop...');
+      renderShop();
+    }
+  }, 1000);
+  
   console.log('✅ App initialized');
 }
 

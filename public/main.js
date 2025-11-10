@@ -842,7 +842,7 @@ function showLandPurchaseModal() {
 
 // Create mandatory land purchase modal (cannot be dismissed)
 function createMandatoryLandPurchaseModal() {
-  // Create modal elements using DOM instead of template literals
+  // Create modal with the beautiful original design
   const modal = document.createElement('div');
   modal.id = 'mandatoryLandModal';
   modal.className = 'modal-overlay';
@@ -852,141 +852,137 @@ function createMandatoryLandPurchaseModal() {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(20,20,40,0.95));
+    background: rgba(0,0,0,0.95);
     z-index: 999999;
     display: flex;
     justify-content: center;
     align-items: center;
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(10px);
   `;
 
   modal.innerHTML = `
     <div class="modal-content" style="
-      width: 95%;
-      max-width: 480px;
-      background: white;
-      border-radius: 24px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-      position: relative;
-      overflow: hidden;">
+      max-width: 500px;
+      width: 90%;
+      background: var(--bg-secondary, #2a2a3e);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      border: 2px solid var(--primary, #00ff88);
+      animation: modalSlideIn 0.3s ease-out;
+      color: white;">
       
-      <div style="
-        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-        padding: 40px 32px 32px 32px;
+      <div class="modal-header" style="
+        background: linear-gradient(45deg, #00ff88, #00cc6a);
+        color: white;
+        padding: 25px;
+        border-radius: 18px 18px 0 0;
         text-align: center;
         position: relative;">
-        
-        <div style="
-          width: 80px;
-          height: 80px;
-          background: rgba(255,255,255,0.15);
-          border-radius: 50%;
-          margin: 0 auto 24px auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 36px;">
-          🏠
-        </div>
-        
-        <h1 style="
-          color: white;
-          font-size: 24px;
-          font-weight: 700;
-          margin: 0 0 12px 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-          Get Your Mining Land
-        </h1>
-        
-        <p style="
-          color: rgba(255,255,255,0.8);
-          font-size: 15px;
-          margin: 0;
-          line-height: 1.5;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-          Start mining gold and earning SOL cryptocurrency
-        </p>
+        <h2 style="margin: 0; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">🏠 Welcome to Gold Mining!</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 14px;">Land purchase required to start</p>
       </div>
       
-      <div style="padding: 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-        
-        <div style="
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          border-radius: 16px;
-          padding: 24px;
-          text-align: center;
-          margin-bottom: 24px;">
+      <div class="modal-body" style="padding: 30px; color: white;">
+        <div class="land-info">
+          <div style="text-align: center; margin-bottom: 25px;">
+            <div style="
+              background: linear-gradient(45deg, #00ff88, #00cc6a);
+              color: white;
+              padding: 15px 25px;
+              border-radius: 15px;
+              display: inline-block;
+              font-size: 18px;
+              font-weight: bold;
+              box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+              🎯 STEP 1: Purchase Land
+            </div>
+          </div>
           
-          <div style="
-            color: #64748B;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;">
-            One-time purchase
+          <div class="land-cost" style="
+            background: var(--bg-primary, #1a1a2e);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--primary, #00ff88);
+            margin-bottom: 20px;
+            text-align: center;">
+            <div style="font-size: 16px; color: var(--text-secondary, #ccc); margin-bottom: 10px;">Land Cost</div>
+            <div style="font-size: 32px; font-weight: bold; color: var(--primary, #00ff88);">0.01 SOL</div>
+            <div style="font-size: 14px; color: var(--text-secondary, #ccc); margin-top: 5px;">≈ $2 USD (one-time purchase)</div>
+          </div>
+          
+          <div class="land-benefits">
+            <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: var(--primary, #00ff88);">🎁 What you get:</div>
+            <ul style="list-style: none; padding: 0; margin: 0; color: white;">
+              <li style="padding: 8px 0; font-size: 16px;">⛏️ Access to buy pickaxes</li>
+              <li style="padding: 8px 0; font-size: 16px;">💰 Start mining gold immediately</li>
+              <li style="padding: 8px 0; font-size: 16px;">🏆 Permanent land ownership</li>
+              <li style="padding: 8px 0; font-size: 16px;">🎮 Full game access forever</li>
+            </ul>
           </div>
           
           <div style="
-            color: #1E293B;
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 4px;">
-            0.01 SOL
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+            animation: pulse 2s infinite;">
+            🚨 Required to play the game!
           </div>
           
-          <div style="
-            color: #64748B;
-            font-size: 14px;">
-            ≈ $2 USD
-          </div>
+          <div id="mandatoryLandMsg" class="msg" style="display: none; margin-top: 15px; color: white;"></div>
         </div>
-        
+      </div>
+      
+      <div class="modal-footer" style="padding: 0 30px 30px 30px;">
         <button id="mandatoryLandPurchaseBtn" onclick="purchaseMandatoryLand()" style="
           width: 100%;
-          padding: 16px 24px;
-          font-size: 16px;
-          font-weight: 600;
-          border: none;
+          padding: 15px;
+          font-size: 18px;
+          font-weight: bold;
           border-radius: 12px;
-          background: linear-gradient(135deg, #4F46E5, #7C3AED);
+          background: linear-gradient(45deg, #00ff88, #00cc6a);
+          border: none;
           color: white;
           cursor: pointer;
-          transition: all 0.2s ease;
-          margin-bottom: 16px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-          Purchase Land (0.01 SOL)
+          transition: all 0.3s ease;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+          🏠 Purchase Land (0.01 SOL)
         </button>
-        
-        <div style="
-          text-align: center;
-          color: #64748B;
-          font-size: 13px;
-          margin-bottom: 8px;">
-          Secure payment via Phantom Wallet
+        <div style="text-align: center; margin-top: 15px; font-size: 12px; color: var(--text-secondary, #ccc);">
+          Secure payment via Phantom wallet
         </div>
-        
-        <div style="
-          background: #FEF3C7;
-          border: 1px solid #FDE68A;
-          border-radius: 8px;
-          padding: 12px;
-          text-align: center;">
-          <div style="color: #92400E; font-size: 13px; font-weight: 500;">
-            ⚠️ Required to access the game
-          </div>
-        </div>
-        
-        <div id="mandatoryLandMsg" class="msg" style="
-          display: none;
-          margin-top: 20px;
-          padding: 15px;
-          border-radius: 10px;
-          text-align: center;
-          font-weight: bold;">
-        </div>
-        
       </div>
     </div>
+    
+    <style>
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-50px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      
+      #mandatoryLandPurchaseBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,255,136,0.3);
+      }
+    </style>
   `;
   
   document.body.appendChild(modal);

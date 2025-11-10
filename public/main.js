@@ -857,6 +857,8 @@ function createMandatoryLandPurchaseModal() {
     justify-content: center;
     align-items: center;
     backdrop-filter: blur(20px);
+    padding: 20px;
+    box-sizing: border-box;
   `;
 
   modal.innerHTML = `
@@ -957,11 +959,12 @@ function createMandatoryLandPurchaseModal() {
       </div>
       
       <!-- Content area with glass morphism -->
-      <div style="
+      <div id="modalScrollContent" style="
         padding: 35px 30px;
         overflow-y: auto;
         flex: 1;
-        max-height: calc(90vh - 200px);">`
+        max-height: calc(90vh - 200px);
+        -webkit-overflow-scrolling: touch;">`
         
         <!-- Step 1 indicator -->
         <div style="text-align: center; margin-bottom: 25px;">
@@ -1210,22 +1213,28 @@ function createMandatoryLandPurchaseModal() {
       }
       
       /* Custom scrollbar styling */
-      .modal-content div::-webkit-scrollbar {
+      #modalScrollContent::-webkit-scrollbar {
         width: 8px;
       }
       
-      .modal-content div::-webkit-scrollbar-track {
+      #modalScrollContent::-webkit-scrollbar-track {
         background: rgba(255,255,255,0.05);
         border-radius: 4px;
       }
       
-      .modal-content div::-webkit-scrollbar-thumb {
+      #modalScrollContent::-webkit-scrollbar-thumb {
         background: linear-gradient(135deg, #00ff88, #00cc6a);
         border-radius: 4px;
       }
       
-      .modal-content div::-webkit-scrollbar-thumb:hover {
+      #modalScrollContent::-webkit-scrollbar-thumb:hover {
         background: linear-gradient(135deg, #00cc6a, #00b366);
+      }
+      
+      /* Force scroll behavior */
+      #modalScrollContent {
+        scrollbar-width: thin;
+        scrollbar-color: #00ff88 rgba(255,255,255,0.05);
       }
     </style>
   `;

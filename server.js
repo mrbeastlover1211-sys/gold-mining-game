@@ -18,10 +18,13 @@ try {
   if (healthCheck.healthy) {
     console.log('🗄️ Database connection healthy:', healthCheck.timestamp);
     global.DATABASE_ENABLED = true;
+    
+    // FORCE MIGRATE ALL FILE DATA TO DATABASE ON STARTUP
+    await migrateFileDataToDatabase();
   } else {
-    console.warn('⚠️ Database connection failed, using file-based system');
-    UserDatabase = null;
-    global.DATABASE_ENABLED = false;
+    console.error('❌ Database connection failed - STOPPING SERVER');
+    console.error('This app requires database connection to prevent data loss');
+    process.exit(1); // Stop server if DB fails
   }
 } catch (dbError) {
   console.warn('⚠️ Database module not available, using file-based system:', dbError.message);
@@ -79,7 +82,63 @@ function writeUsers(data) {
   }
 }
 
-const users = readUsers(); // { [address]: { inventory: {silver,gold,diamond,netherite}, gold, lastUpdate } }
+// Migration function to move file data to database on startup
+async function migrateFileDataToDatabase() {
+  try {
+    const fileUsers = readUsers();
+    const userAddresses = Object.keys(fileUsers);
+    
+    if (userAddresses.length === 0) {
+      console.log('📁 No file users to migrate');
+      return;
+    }
+    
+    console.log(`🔄 Migrating ${userAddresses.length} users from file to database...`);
+    
+    for (const address of userAddresses) {
+      const fileUser = fileUsers[address];
+      
+      try {
+        // Check if user already exists in database
+        const existingUser = await UserDatabase.getUser(address);
+        if (existingUser) {
+          console.log(`⏭️ User ${address.slice(0, 8)}... already in database, skipping`);
+          continue;
+        }
+      } catch (e) {
+        // User doesn't exist, create them
+      }
+      
+      // Migrate user data to database
+      const userData = {
+        total_mining_power: fileUser.total_mining_power || 0,
+        checkpoint_timestamp: fileUser.checkpoint_timestamp || Math.floor(Date.now() / 1000),
+        last_checkpoint_gold: fileUser.last_checkpoint_gold || fileUser.gold || 0,
+        inventory: fileUser.inventory || { silver: 0, gold: 0, diamond: 0, netherite: 0 },
+        hasLand: fileUser.hasLand || false,
+        landPurchaseDate: fileUser.landPurchaseDate || null,
+        lastActivity: fileUser.lastActivity || Math.floor(Date.now() / 1000)
+      };
+      
+      await UserDatabase.updateUser(address, userData);
+      console.log(`✅ Migrated user ${address.slice(0, 8)}... to database`);
+    }
+    
+    // Create backup of file data and clear it
+    const backupFile = usersFile + '.backup.' + Date.now();
+    writeUsers(fileUsers); // Ensure current data is saved
+    fs.copyFileSync(usersFile, backupFile);
+    writeUsers({}); // Clear the file
+    
+    console.log(`🎉 Migration complete! File backed up to: ${backupFile}`);
+    
+  } catch (e) {
+    console.error('❌ Migration failed:', e);
+    throw e;
+  }
+}
+
+const users = {}; // No longer load from file - database only
 
 const PICKAXES = {
   silver: { name: 'Silver', costSol: 0.001, ratePerSec: 1/60 },     // 1 gold/min = 1/60 gold/sec
@@ -264,75 +323,37 @@ app.get('/status', async (req, res) => {
     const { address } = req.query;
     if (!address) return res.status(400).json({ error: 'address required' });
     
-    // Try database first, fallback to file system
-    if (global.DATABASE_ENABLED && UserDatabase) {
-      try {
-        console.log(`🗄️ Loading user data from database: ${address.slice(0, 8)}...`);
-        
-        const user = await UserDatabase.getUser(address);
-        
-        // Calculate current gold from checkpoint
-        const currentGold = UserDatabase.calculateCurrentGold(user);
-        
-        // Update last activity in database
-        await UserDatabase.updateUser(address, {
-          lastActivity: Math.floor(Date.now() / 1000)
-        });
-        
-        res.json({
-          address,
-          inventory: user.inventory,
-          totalRate: totalRate(user.inventory),
-          gold: currentGold,
-          // Checkpoint data for client-side calculations
-          checkpoint: {
-            total_mining_power: user.total_mining_power || 0,
-            checkpoint_timestamp: user.checkpoint_timestamp || Math.floor(Date.now() / 1000),
-            last_checkpoint_gold: user.last_checkpoint_gold || 0
-          },
-          referralStats: {
-            totalReferrals: 0,
-            referralGoldEarned: 0,
-            activeReferrals: 0
-          }
-        });
-        return; // Success - exit here
-        
-      } catch (dbError) {
-        console.warn('⚠️ Database error, falling back to file system:', dbError.message);
-        // Continue to file system below
-      }
-    }
+    // DATABASE ONLY - No more file system fallback
+    console.log(`🗄️ Loading user data from database: ${address.slice(0, 8)}...`);
     
-    // File system fallback
-    {
-      console.log(`📁 Loading user data from file system: ${address.slice(0, 8)}...`);
-      ensureUser(address);
-      users[address].lastActivity = nowSec();
-      writeUsers(users);
-      const u = users[address];
-      
-      // Calculate current gold from checkpoint
-      const currentGold = calculateCurrentGold(u);
-      
-      res.json({
-        address,
-        inventory: u.inventory,
-        totalRate: totalRate(u.inventory),
-        gold: currentGold,
-        // Checkpoint data for client-side calculations
-        checkpoint: {
-          total_mining_power: u.total_mining_power || 0,
-          checkpoint_timestamp: u.checkpoint_timestamp || nowSec(),
-          last_checkpoint_gold: u.last_checkpoint_gold || 0
-        },
-        referralStats: {
-          totalReferrals: 0,
-          referralGoldEarned: 0,
-          activeReferrals: 0
-        }
-      });
-    }
+    const user = await UserDatabase.getUser(address);
+    
+    // Calculate current gold from checkpoint
+    const currentGold = UserDatabase.calculateCurrentGold(user);
+    
+    // Update last activity in database
+    await UserDatabase.updateUser(address, {
+      lastActivity: Math.floor(Date.now() / 1000)
+    });
+    
+    res.json({
+      address,
+      inventory: user.inventory,
+      totalRate: totalRate(user.inventory),
+      gold: currentGold,
+      hasLand: user.hasLand || false,
+      // Checkpoint data for client-side calculations
+      checkpoint: {
+        total_mining_power: user.total_mining_power || 0,
+        checkpoint_timestamp: user.checkpoint_timestamp || Math.floor(Date.now() / 1000),
+        last_checkpoint_gold: user.last_checkpoint_gold || 0
+      },
+      referralStats: {
+        totalReferrals: 0,
+        referralGoldEarned: 0,
+        activeReferrals: 0
+      }
+    });
   } catch (e) {
     console.error('Status error:', e);
     res.status(500).json({ error: 'status failed: ' + e.message });

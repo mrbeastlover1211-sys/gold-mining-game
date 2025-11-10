@@ -22,9 +22,9 @@ try {
     // FORCE MIGRATE ALL FILE DATA TO DATABASE ON STARTUP
     await migrateFileDataToDatabase();
   } else {
-    console.error('❌ Database connection failed - STOPPING SERVER');
-    console.error('This app requires database connection to prevent data loss');
-    process.exit(1); // Stop server if DB fails
+    console.warn('⚠️ Database connection failed, will retry but use fallback system');
+    UserDatabase = null;
+    global.DATABASE_ENABLED = false;
   }
 } catch (dbError) {
   console.warn('⚠️ Database module not available, using file-based system:', dbError.message);
@@ -138,7 +138,7 @@ async function migrateFileDataToDatabase() {
   }
 }
 
-const users = {}; // No longer load from file - database only
+const users = readUsers(); // Load users from file system (fallback/safety net)
 
 const PICKAXES = {
   silver: { name: 'Silver', costSol: 0.001, ratePerSec: 1/60 },     // 1 gold/min = 1/60 gold/sec
@@ -323,30 +323,68 @@ app.get('/status', async (req, res) => {
     const { address } = req.query;
     if (!address) return res.status(400).json({ error: 'address required' });
     
-    // DATABASE ONLY - No more file system fallback
-    console.log(`🗄️ Loading user data from database: ${address.slice(0, 8)}...`);
+    // Try database first, fallback to file system if needed
+    if (global.DATABASE_ENABLED && UserDatabase) {
+      try {
+        console.log(`🗄️ Loading user data from database: ${address.slice(0, 8)}...`);
+        
+        const user = await UserDatabase.getUser(address);
+        
+        // Calculate current gold from checkpoint
+        const currentGold = UserDatabase.calculateCurrentGold(user);
+        
+        // Update last activity in database
+        await UserDatabase.updateUser(address, {
+          lastActivity: Math.floor(Date.now() / 1000)
+        });
+        
+        res.json({
+          address,
+          inventory: user.inventory,
+          totalRate: totalRate(user.inventory),
+          gold: currentGold,
+          hasLand: user.hasLand || false,
+          // Checkpoint data for client-side calculations
+          checkpoint: {
+            total_mining_power: user.total_mining_power || 0,
+            checkpoint_timestamp: user.checkpoint_timestamp || Math.floor(Date.now() / 1000),
+            last_checkpoint_gold: user.last_checkpoint_gold || 0
+          },
+          referralStats: {
+            totalReferrals: 0,
+            referralGoldEarned: 0,
+            activeReferrals: 0
+          }
+        });
+        return; // Success - exit here
+        
+      } catch (dbError) {
+        console.warn('⚠️ Database error, falling back to file system:', dbError.message);
+        // Continue to file system below
+      }
+    }
     
-    const user = await UserDatabase.getUser(address);
+    // File system fallback (safety net)
+    console.log(`📁 Loading user data from file system: ${address.slice(0, 8)}...`);
+    ensureUser(address);
+    users[address].lastActivity = nowSec();
+    writeUsers(users);
+    const u = users[address];
     
     // Calculate current gold from checkpoint
-    const currentGold = UserDatabase.calculateCurrentGold(user);
-    
-    // Update last activity in database
-    await UserDatabase.updateUser(address, {
-      lastActivity: Math.floor(Date.now() / 1000)
-    });
+    const currentGold = calculateCurrentGold(u);
     
     res.json({
       address,
-      inventory: user.inventory,
-      totalRate: totalRate(user.inventory),
+      inventory: u.inventory,
+      totalRate: totalRate(u.inventory),
       gold: currentGold,
-      hasLand: user.hasLand || false,
+      hasLand: u.hasLand || false,
       // Checkpoint data for client-side calculations
       checkpoint: {
-        total_mining_power: user.total_mining_power || 0,
-        checkpoint_timestamp: user.checkpoint_timestamp || Math.floor(Date.now() / 1000),
-        last_checkpoint_gold: user.last_checkpoint_gold || 0
+        total_mining_power: u.total_mining_power || 0,
+        checkpoint_timestamp: u.checkpoint_timestamp || nowSec(),
+        last_checkpoint_gold: u.last_checkpoint_gold || 0
       },
       referralStats: {
         totalReferrals: 0,

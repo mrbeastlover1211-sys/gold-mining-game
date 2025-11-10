@@ -220,6 +220,9 @@ async function refreshStatus() {
     const json = await r.json();
     if (json.error) throw new Error(json.error);
     
+    // Check if user has land - if not, show land purchase modal
+    await checkLandStatus();
+    
     state.status = {
       gold: json.gold || 0,
       inventory: json.inventory || { silver: 0, gold: 0, diamond: 0, netherite: 0 }
@@ -741,6 +744,155 @@ async function buyPickaxeWithGold(pickaxeType, goldCost) {
   }
 }
 
+// Check if user has land, show purchase modal if not
+async function checkLandStatus() {
+  if (!state.address) return;
+  
+  try {
+    const response = await fetch(`/land-status?address=${encodeURIComponent(state.address)}`);
+    const data = await response.json();
+    
+    if (!data.hasLand) {
+      // User doesn't have land, show purchase modal
+      showLandPurchaseModal();
+    }
+  } catch (e) {
+    console.error('Failed to check land status:', e);
+  }
+}
+
+// Show land purchase modal
+function showLandPurchaseModal() {
+  const modal = document.getElementById('landPurchaseModal');
+  if (modal) {
+    modal.classList.add('show');
+  } else {
+    // Create modal if it doesn't exist
+    createLandPurchaseModal();
+  }
+}
+
+// Create land purchase modal dynamically
+function createLandPurchaseModal() {
+  const modalHTML = `
+    <div id="landPurchaseModal" class="modal-overlay show">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🏠 Purchase Land</h2>
+          <span class="modal-close" onclick="closeLandModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="land-info">
+            <h3>Welcome to the Gold Mining Game!</h3>
+            <p>To start mining, you need to purchase land first.</p>
+            
+            <div class="land-cost">
+              <div class="cost-item">
+                <span class="cost-label">Land Cost:</span>
+                <span class="cost-value">0.01 SOL</span>
+              </div>
+            </div>
+            
+            <div class="land-benefits">
+              <h4>What you get:</h4>
+              <ul>
+                <li>✅ Access to the mining area</li>
+                <li>✅ Ability to purchase pickaxes</li>
+                <li>✅ Start earning gold immediately</li>
+                <li>✅ Permanent ownership</li>
+              </ul>
+            </div>
+            
+            <div id="landMsg" class="msg" style="display: none;"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="purchaseLandBtn" class="primary-btn" onclick="purchaseLand()">
+            🏠 Purchase Land (0.01 SOL)
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// Purchase land function
+async function purchaseLand() {
+  if (!state.address) {
+    showLandMessage('Please connect your wallet first!', 'error');
+    return;
+  }
+  
+  try {
+    showLandMessage('Creating land purchase transaction...', 'info');
+    
+    // Create transaction
+    const response = await fetch('/purchase-land', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address: state.address }),
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+
+    const txBytes = Uint8Array.from(atob(data.transaction), c => c.charCodeAt(0));
+    const tx = solanaWeb3.Transaction.from(txBytes);
+
+    // Sign and send
+    showLandMessage('Please sign the transaction in Phantom...', 'info');
+    const sig = await state.wallet.signAndSendTransaction(tx);
+    showLandMessage(`Transaction submitted: ${sig.signature.slice(0, 8)}...`, 'info');
+
+    // Confirm
+    const confirmResponse = await fetch('/confirm-land-purchase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address: state.address, signature: sig.signature }),
+    });
+    const confirmData = await confirmResponse.json();
+    if (confirmData.error) throw new Error(confirmData.error);
+
+    showLandMessage('✅ Land purchased successfully! You can now buy pickaxes and start mining!', 'success');
+    
+    // Close modal after 2 seconds
+    setTimeout(() => {
+      closeLandModal();
+    }, 2000);
+    
+    // Refresh status to update user data
+    await refreshStatus();
+    await updateWalletBalance();
+    
+  } catch (e) {
+    console.error('Land purchase failed:', e);
+    showLandMessage('❌ Land purchase failed: ' + e.message, 'error');
+  }
+}
+
+// Show message in land modal
+function showLandMessage(message, type = 'info') {
+  const msgEl = document.getElementById('landMsg');
+  if (msgEl) {
+    msgEl.textContent = message;
+    msgEl.className = `msg ${type}`;
+    msgEl.style.display = 'block';
+  }
+}
+
+// Close land modal
+function closeLandModal() {
+  const modal = document.getElementById('landPurchaseModal');
+  if (modal) {
+    modal.classList.remove('show');
+    // Remove from DOM after animation
+    setTimeout(() => {
+      modal.remove();
+    }, 300);
+  }
+}
+
 // Auto connect check
 async function tryAutoConnect() {
   console.log('🔍 Checking for existing wallet connection...');
@@ -938,6 +1090,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.hideHowItWorksModal = hideHowItWorksModal;
     window.stopStatusPolling = stopStatusPolling;
     window.refreshStatus = refreshStatus;
+    window.purchaseLand = purchaseLand;
+    window.closeLandModal = closeLandModal;
     
     console.log('🎮 Gold Mining Game ready!');
     

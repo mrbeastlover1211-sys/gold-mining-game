@@ -574,6 +574,24 @@ async function buyPickaxe(pickaxeType) {
     return;
   }
   
+  // Check if user has land before allowing pickaxe purchase
+  try {
+    const landResponse = await fetch(`/land-status?address=${encodeURIComponent(state.address)}`);
+    const landData = await landResponse.json();
+    
+    if (!landData.hasLand) {
+      $('#shopMsg').textContent = '🏠 You need to purchase land first before buying pickaxes!';
+      $('#shopMsg').className = 'msg error';
+      showLandPurchaseModal();
+      return;
+    }
+  } catch (e) {
+    console.error('Failed to check land status:', e);
+    $('#shopMsg').textContent = 'Failed to verify land ownership. Please try again.';
+    $('#shopMsg').className = 'msg error';
+    return;
+  }
+  
   const quantity = parseInt($(`#qty-${pickaxeType}`).value) || 1;
   
   try {
@@ -700,6 +718,24 @@ async function buyPickaxeWithGold(pickaxeType, goldCost) {
     return;
   }
   
+  // Check if user has land before allowing pickaxe purchase
+  try {
+    const landResponse = await fetch(`/land-status?address=${encodeURIComponent(state.address)}`);
+    const landData = await landResponse.json();
+    
+    if (!landData.hasLand) {
+      $('#storeMsg').textContent = '🏠 You need to purchase land first before buying pickaxes!';
+      $('#storeMsg').className = 'msg error';
+      showLandPurchaseModal();
+      return;
+    }
+  } catch (e) {
+    console.error('Failed to check land status:', e);
+    $('#storeMsg').textContent = 'Failed to verify land ownership. Please try again.';
+    $('#storeMsg').className = 'msg error';
+    return;
+  }
+  
   // Check if user has enough gold
   const currentGold = state.status?.gold || 0;
   if (currentGold < goldCost) {
@@ -775,47 +811,140 @@ function showLandPurchaseModal() {
 // Create land purchase modal dynamically
 function createLandPurchaseModal() {
   const modalHTML = `
-    <div id="landPurchaseModal" class="modal-overlay show">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>🏠 Purchase Land</h2>
-          <span class="modal-close" onclick="closeLandModal()">&times;</span>
+    <div id="landPurchaseModal" class="modal-overlay show" style="background: rgba(0,0,0,0.9); z-index: 10000;">
+      <div class="modal-content" style="
+        max-width: 500px; 
+        margin: 5% auto; 
+        background: var(--bg-secondary);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        border: 2px solid var(--primary);
+        animation: modalSlideIn 0.3s ease-out;">
+        <div class="modal-header" style="
+          background: var(--gradient);
+          color: white;
+          padding: 25px;
+          border-radius: 18px 18px 0 0;
+          text-align: center;
+          position: relative;">
+          <h2 style="margin: 0; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">🏠 Welcome to Gold Mining!</h2>
+          <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 14px;">Land purchase required to start</p>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="padding: 30px;">
           <div class="land-info">
-            <h3>Welcome to the Gold Mining Game!</h3>
-            <p>To start mining, you need to purchase land first.</p>
-            
-            <div class="land-cost">
-              <div class="cost-item">
-                <span class="cost-label">Land Cost:</span>
-                <span class="cost-value">0.01 SOL</span>
+            <div style="text-align: center; margin-bottom: 25px;">
+              <div style="
+                background: var(--gradient);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 15px;
+                display: inline-block;
+                font-size: 18px;
+                font-weight: bold;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                🎯 STEP 1: Purchase Land
               </div>
             </div>
             
+            <div class="land-cost" style="
+              background: var(--bg-primary);
+              padding: 20px;
+              border-radius: 15px;
+              border: 2px solid var(--primary);
+              margin-bottom: 20px;
+              text-align: center;">
+              <div style="font-size: 16px; color: var(--text-secondary); margin-bottom: 10px;">Land Cost</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--primary);">0.01 SOL</div>
+              <div style="font-size: 14px; color: var(--text-secondary); margin-top: 5px;">≈ $2 USD (one-time purchase)</div>
+            </div>
+            
             <div class="land-benefits">
-              <h4>What you get:</h4>
-              <ul>
-                <li>✅ Access to the mining area</li>
-                <li>✅ Ability to purchase pickaxes</li>
-                <li>✅ Start earning gold immediately</li>
-                <li>✅ Permanent ownership</li>
+              <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: var(--primary);">🎁 What you get:</div>
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="padding: 8px 0; font-size: 16px;">⛏️ Access to buy pickaxes</li>
+                <li style="padding: 8px 0; font-size: 16px;">💰 Start mining gold immediately</li>
+                <li style="padding: 8px 0; font-size: 16px;">🏆 Permanent land ownership</li>
+                <li style="padding: 8px 0; font-size: 16px;">🎮 Full game access forever</li>
               </ul>
             </div>
             
-            <div id="landMsg" class="msg" style="display: none;"></div>
+            <div style="
+              background: linear-gradient(45deg, #ff6b6b, #ffa500);
+              color: white;
+              padding: 15px;
+              border-radius: 10px;
+              margin: 20px 0;
+              text-align: center;
+              font-weight: bold;
+              animation: pulse 2s infinite;">
+              🚨 Required to play the game!
+            </div>
+            
+            <div id="landMsg" class="msg" style="display: none; margin-top: 15px;"></div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button id="purchaseLandBtn" class="primary-btn" onclick="purchaseLand()">
+        <div class="modal-footer" style="padding: 0 30px 30px 30px;">
+          <button id="purchaseLandBtn" class="primary-btn" onclick="purchaseLand()" style="
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            background: var(--gradient);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
             🏠 Purchase Land (0.01 SOL)
           </button>
+          <div style="text-align: center; margin-top: 15px; font-size: 12px; color: var(--text-secondary);">
+            Secure payment via Phantom wallet
+          </div>
         </div>
       </div>
     </div>
+    <style>
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-50px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      
+      #purchaseLandBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      }
+      
+      #landPurchaseModal .modal-overlay {
+        pointer-events: all !important;
+      }
+    </style>
   `;
   
   document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Prevent closing by clicking outside
+  const modal = document.getElementById('landPurchaseModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
 }
 
 // Purchase land function

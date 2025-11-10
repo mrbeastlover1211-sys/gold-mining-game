@@ -872,14 +872,59 @@ function createMandatoryLandPurchaseModal() {
       color: white;">
       
       <div class="modal-header" style="
-        background: linear-gradient(45deg, #00ff88, #00cc6a);
+        background: linear-gradient(45deg, #00ff88, #00cc6a, #00ff88);
         color: white;
-        padding: 25px;
+        padding: 30px 25px;
         border-radius: 18px 18px 0 0;
         text-align: center;
-        position: relative;">
-        <h2 style="margin: 0; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">🏠 Welcome to Gold Mining!</h2>
-        <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 14px;">Land purchase required to start</p>
+        position: relative;
+        overflow: hidden;">
+        
+        <div style="
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+          animation: headerShimmer 3s infinite;">
+        </div>
+        
+        <div style="
+          width: 70px;
+          height: 70px;
+          background: rgba(255,255,255,0.2);
+          border-radius: 50%;
+          margin: 0 auto 20px auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 32px;
+          border: 2px solid rgba(255,255,255,0.3);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.3);">
+          🌟
+        </div>
+        
+        <h2 style="
+          margin: 0 0 8px 0; 
+          font-size: 26px; 
+          font-weight: 700;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          position: relative;
+          z-index: 1;">
+          🏠 Start Your Mining Empire
+        </h2>
+        
+        <p style="
+          margin: 0; 
+          opacity: 0.95; 
+          font-size: 15px;
+          font-weight: 400;
+          position: relative;
+          z-index: 1;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+          Purchase your land and begin earning SOL cryptocurrency!
+        </p>
       </div>
       
       <div class="modal-body" style="padding: 30px; color: white;">
@@ -969,18 +1014,47 @@ function createMandatoryLandPurchaseModal() {
         }
       }
       
-      @keyframes pulse {
-        0%, 100% {
-          transform: scale(1);
+      @keyframes headerShimmer {
+        0% { 
+          transform: translateX(-100%) translateY(-100%) rotate(30deg); 
         }
-        50% {
-          transform: scale(1.05);
+        100% { 
+          transform: translateX(100%) translateY(100%) rotate(30deg); 
         }
       }
       
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        50% {
+          transform: scale(1.02);
+          box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+        }
+      }
+      
+      @keyframes buttonGlow {
+        0%, 100% {
+          box-shadow: 0 5px 15px rgba(0,255,136,0.3);
+        }
+        50% {
+          box-shadow: 0 5px 15px rgba(0,255,136,0.6);
+        }
+      }
+      
+      #mandatoryLandPurchaseBtn {
+        animation: buttonGlow 2s infinite;
+      }
+      
       #mandatoryLandPurchaseBtn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,255,136,0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(0,255,136,0.5) !important;
+        animation: none;
+      }
+      
+      .modal-content {
+        animation: modalSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       }
     </style>
   `;

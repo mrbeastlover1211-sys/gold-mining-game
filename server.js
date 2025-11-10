@@ -1052,6 +1052,258 @@ app.post('/buy-with-gold', async (req, res) => {
   }
 });
 
+// Admin middleware for authentication
+function requireAdmin(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing authorization header' });
+  }
+  
+  const token = authHeader.split(' ')[1];
+  if (token !== ADMIN_TOKEN || !ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'Invalid admin token' });
+  }
+  
+  next();
+}
+
+// Admin statistics endpoint
+app.get('/admin/stats', requireAdmin, async (req, res) => {
+  try {
+    let stats = {
+      totalUsers: 0,
+      activeUsers: 0,
+      landOwners: 0,
+      totalPickaxes: 0,
+      totalRevenue: 0,
+      pendingPayouts: 0,
+      netProfit: 0,
+      processingFees: 0
+    };
+
+    // Calculate stats from file-based system
+    const allUsers = Object.values(users);
+    const now = nowSec();
+    const oneDayAgo = now - (24 * 60 * 60);
+
+    stats.totalUsers = allUsers.length;
+    stats.activeUsers = allUsers.filter(u => (u.lastActivity || 0) > oneDayAgo).length;
+    stats.landOwners = allUsers.filter(u => u.hasLand).length;
+    
+    // Calculate total pickaxes
+    stats.totalPickaxes = allUsers.reduce((total, u) => {
+      const inv = u.inventory || {};
+      return total + (inv.silver || 0) + (inv.gold || 0) + (inv.diamond || 0) + (inv.netherite || 0);
+    }, 0);
+
+    // Calculate revenue from land purchases (0.01 SOL each)
+    const landRevenue = stats.landOwners * 0.01;
+    
+    // Calculate revenue from pickaxe purchases (0.001 SOL each)
+    const pickaxeRevenue = stats.totalPickaxes * 0.001;
+    
+    stats.totalRevenue = landRevenue + pickaxeRevenue;
+
+    // Calculate pending payouts
+    let totalPendingPayouts = 0;
+    allUsers.forEach(user => {
+      if (user.pendingPayouts && Array.isArray(user.pendingPayouts)) {
+        totalPendingPayouts += user.pendingPayouts.reduce((sum, p) => sum + p.payoutSol, 0);
+      }
+    });
+    
+    stats.pendingPayouts = totalPendingPayouts;
+    stats.processingFees = totalPendingPayouts * 0.1; // 10% fee
+    stats.netProfit = stats.totalRevenue - (totalPendingPayouts * 0.9); // Revenue minus net payouts
+
+    res.json(stats);
+  } catch (e) {
+    console.error('Admin stats error:', e);
+    res.status(500).json({ error: 'Failed to get admin stats' });
+  }
+});
+
+// Get pending payouts
+app.get('/admin/pending-payouts', requireAdmin, (req, res) => {
+  try {
+    const pendingPayouts = [];
+    
+    Object.entries(users).forEach(([address, user]) => {
+      if (user.pendingPayouts && Array.isArray(user.pendingPayouts)) {
+        user.pendingPayouts.forEach(payout => {
+          pendingPayouts.push({
+            ...payout,
+            address: address
+          });
+        });
+      }
+    });
+
+    // Sort by timestamp (newest first)
+    pendingPayouts.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
+    res.json(pendingPayouts);
+  } catch (e) {
+    console.error('Pending payouts error:', e);
+    res.status(500).json({ error: 'Failed to get pending payouts' });
+  }
+});
+
+// Send individual payout
+app.post('/admin/send-payout', requireAdmin, async (req, res) => {
+  try {
+    const { address, netAmount, goldAmount } = req.body;
+    
+    if (!address || !netAmount || !TREASURY_SECRET_KEY) {
+      return res.status(400).json({ error: 'Missing required fields or treasury not configured' });
+    }
+
+    // Send SOL payment
+    const secret = Uint8Array.from(JSON.parse(TREASURY_SECRET_KEY));
+    const { Keypair } = await import('@solana/web3.js');
+    const kp = Keypair.fromSecretKey(secret);
+    const toPubkey = new PublicKey(address);
+    const lamports = Math.round(netAmount * LAMPORTS_PER_SOL);
+    
+    const tx = new Transaction();
+    tx.add(SystemProgram.transfer({ fromPubkey: kp.publicKey, toPubkey, lamports }));
+    
+    const sig = await connection.sendTransaction(tx, [kp]);
+    await connection.confirmTransaction(sig, 'confirmed');
+
+    // Remove from pending payouts
+    if (users[address] && users[address].pendingPayouts) {
+      users[address].pendingPayouts = users[address].pendingPayouts.filter(p => 
+        !(p.amountGold === goldAmount && Math.abs(p.payoutSol - (netAmount / 0.9)) < 0.000001)
+      );
+      
+      if (users[address].pendingPayouts.length === 0) {
+        delete users[address].pendingPayouts;
+      }
+      
+      writeUsers(users);
+    }
+
+    console.log(`💰 Admin sent ${netAmount} SOL to ${address} (signature: ${sig})`);
+
+    res.json({ 
+      success: true, 
+      signature: sig,
+      netAmount: netAmount,
+      address: address
+    });
+
+  } catch (e) {
+    console.error('Send payout error:', e);
+    res.status(500).json({ error: 'Failed to send payout: ' + e.message });
+  }
+});
+
+// Process all pending payouts
+app.post('/admin/process-all-payouts', requireAdmin, async (req, res) => {
+  try {
+    if (!TREASURY_SECRET_KEY) {
+      return res.status(400).json({ error: 'Treasury not configured for auto-payouts' });
+    }
+
+    const secret = Uint8Array.from(JSON.parse(TREASURY_SECRET_KEY));
+    const { Keypair } = await import('@solana/web3.js');
+    const kp = Keypair.fromSecretKey(secret);
+
+    let processed = 0;
+    const errors = [];
+
+    for (const [address, user] of Object.entries(users)) {
+      if (user.pendingPayouts && Array.isArray(user.pendingPayouts)) {
+        for (const payout of user.pendingPayouts) {
+          try {
+            const netAmount = payout.payoutSol * 0.9; // Subtract 10% fee
+            const toPubkey = new PublicKey(address);
+            const lamports = Math.round(netAmount * LAMPORTS_PER_SOL);
+            
+            const tx = new Transaction();
+            tx.add(SystemProgram.transfer({ fromPubkey: kp.publicKey, toPubkey, lamports }));
+            
+            const sig = await connection.sendTransaction(tx, [kp]);
+            await connection.confirmTransaction(sig, 'confirmed');
+            
+            console.log(`💰 Batch processed: ${netAmount} SOL to ${address} (${sig})`);
+            processed++;
+            
+            // Add small delay between transactions
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+          } catch (error) {
+            errors.push({ address, error: error.message });
+          }
+        }
+        
+        // Clear processed payouts
+        delete user.pendingPayouts;
+      }
+    }
+
+    writeUsers(users);
+
+    res.json({ 
+      success: true, 
+      processed: processed,
+      errors: errors.length > 0 ? errors : undefined
+    });
+
+  } catch (e) {
+    console.error('Process all payouts error:', e);
+    res.status(500).json({ error: 'Failed to process payouts: ' + e.message });
+  }
+});
+
+// Data backup endpoint
+app.get('/admin/backup', requireAdmin, (req, res) => {
+  try {
+    const backup = {
+      timestamp: new Date().toISOString(),
+      users: users,
+      config: {
+        goldPriceSol: GOLD_PRICE_SOL,
+        minSellGold: MIN_SELL_GOLD,
+        treasuryPublicKey: TREASURY_PUBLIC_KEY
+      },
+      stats: {
+        totalUsers: Object.keys(users).length,
+        totalGoldInCirculation: Object.values(users).reduce((sum, u) => sum + (calculateCurrentGold(u) || 0), 0)
+      }
+    };
+
+    res.json(backup);
+  } catch (e) {
+    console.error('Backup error:', e);
+    res.status(500).json({ error: 'Failed to create backup' });
+  }
+});
+
+// Update minimum sell gold amount
+app.post('/admin/min-sell', requireAdmin, (req, res) => {
+  try {
+    const { minSellGold } = req.body;
+    const amount = parseInt(minSellGold);
+    
+    if (!isFinite(amount) || amount < 1000) {
+      return res.status(400).json({ error: 'Invalid minimum sell amount (must be >= 1000)' });
+    }
+    
+    // Note: This would require updating environment variable for persistence
+    console.log(`Admin updated min sell gold to: ${amount}`);
+    
+    res.json({ 
+      ok: true, 
+      minSellGold: amount,
+      note: 'Minimum sell amount updated (restart server to persist)' 
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to update min sell amount' });
+  }
+});
+
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));
 

@@ -2170,4 +2170,284 @@ h6 { font-size: 12px; }
     font-size: 9px;
     padding: 2px 4px;
   }
+  
+  /* Enhanced mobile styles */
+  .stat-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .pickaxe-item {
+    padding: 12px;
+  }
+  
+  .shop-item {
+    padding: 12px;
+  }
+  
+  .connect-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+/* Mobile Portrait (up to 768px) */
+@media (max-width: 768px) {
+  .game-dashboard {
+    grid-template-areas: 
+      "header"
+      "wallet"
+      "stats"
+      "shop"
+      "mining"
+      "selling"
+      "footer";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto auto auto;
+    gap: 10px;
+    padding: 10px;
+    margin: 5px;
+  }
+  
+  .stat-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .pickaxe-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .shop-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  
+  .stat-card {
+    padding: 10px;
+  }
+  
+  .stat-card h3 {
+    font-size: 12px;
+  }
+  
+  .stat-card .value {
+    font-size: 16px;
+  }
+  
+  .pickaxe-item {
+    padding: 15px;
+  }
+  
+  .shop-item {
+    padding: 15px;
+  }
+  
+  .wallet-section {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  
+  .connect-btn {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    display: block;
+  }
+  
+  .quantity-controls {
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .qty-input {
+    width: 60px;
+    text-align: center;
+  }
+  
+  .buy-btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+
+/* Mobile Small (up to 576px) */
+@media (max-width: 576px) {
+  .game-dashboard {
+    margin: 0;
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .stat-cards {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .stat-card {
+    padding: 12px;
+    text-align: center;
+  }
+  
+  .stat-card h3 {
+    font-size: 11px;
+    margin-bottom: 5px;
+  }
+  
+  .stat-card .value {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .pickaxe-item,
+  .shop-item {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  
+  .pickaxe-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .pickaxe-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .pickaxe-name {
+    font-size: 14px;
+  }
+  
+  .pickaxe-rate {
+    font-size: 12px;
+  }
+  
+  .pickaxe-price {
+    font-size: 14px;
+    margin: 10px 0;
+  }
+  
+  .quantity-controls {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  
+  .qty-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+  
+  .qty-input {
+    width: 50px;
+    height: 35px;
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  .buy-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  
+  /* Wallet section mobile optimization */
+  .wallet-info {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .wallet-address {
+    font-size: 12px;
+  }
+  
+  .wallet-balance {
+    font-size: 16px;
+  }
+  
+  /* Modal responsive adjustments */
+  .modal-content {
+    width: 95% !important;
+    max-width: 400px !important;
+    margin: 10px !important;
+  }
+  
+  .modal-header {
+    padding: 20px 15px !important;
+  }
+  
+  .modal-body {
+    padding: 20px 15px !important;
+  }
+  
+  .modal-footer {
+    padding: 0 15px 20px 15px !important;
+  }
+}
+
+/* Extra Small Mobile (up to 320px) */
+@media (max-width: 320px) {
+  .game-dashboard {
+    padding: 5px;
+    gap: 5px;
+  }
+  
+  .section-title {
+    font-size: 14px;
+  }
+  
+  .stat-card {
+    padding: 8px;
+  }
+  
+  .pickaxe-item,
+  .shop-item {
+    padding: 10px;
+  }
+  
+  .connect-btn {
+    padding: 10px;
+    font-size: 12px;
+  }
+  
+  .buy-btn {
+    padding: 10px;
+    font-size: 12px;
+  }
+  
+  .quantity-controls {
+    gap: 5px;
+  }
+  
+  .qty-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+  
+  .qty-input {
+    width: 40px;
+    height: 30px;
+    font-size: 12px;
+  }
 }

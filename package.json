@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "echo 'Build complete'",
+    "vercel-build": "echo 'Vercel build complete'"
   },
   "dependencies": {
     "cors": "^2.8.5",

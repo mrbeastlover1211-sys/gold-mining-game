@@ -3,16 +3,16 @@
 ## 📋 **Overview**
 This guide will help you deploy the Gold Mining Game to production with database support for 10,000-100,000+ users.
 
-## 🗄️ **Step 1: Database Setup (Supabase)**
+## 🗄️ **Step 1: Database Setup (Neon)**
 
-### **Create Free Supabase Account**
-1. Go to [https://supabase.com](https://supabase.com)
+### **Create Free Neon Account**
+1. Go to [https://neon.tech](https://neon.tech)
 2. Sign up with GitHub/Google
 3. Create a new project
 4. Choose a database password
 
 ### **Run Database Schema**
-1. Go to **SQL Editor** in Supabase dashboard
+1. Go to **SQL Editor** in Neon dashboard
 2. Copy and paste the entire `database-setup.sql` file
 3. Click **Run** to create all tables and indexes
 4. Verify tables were created in **Table Editor**
@@ -100,7 +100,7 @@ migrateUsers();
 
 ## 💰 **Capacity & Costs**
 
-### **Free Tier (Supabase + Vercel)**
+### **Free Tier (Neon + Vercel)**
 - **Users**: 50,000
 - **Requests**: Unlimited (with limits)
 - **Storage**: 500MB
@@ -109,7 +109,7 @@ migrateUsers();
 
 ### **Production Scale**
 - **Users**: 100,000+
-- **Supabase Pro**: $25/month
+- **Neon Pro**: $19/month
 - **Vercel Pro**: $20/month (if needed)
 - **Total**: $45/month for massive scale
 
@@ -146,7 +146,7 @@ SELECT * FROM user_stats;
 ### **Database Security**
 - ✅ Connection pooling enabled
 - ✅ Prepared statements (SQL injection protection)
-- ✅ Row-level security available in Supabase
+- ✅ Row-level security available in Neon
 - ✅ Automatic backups
 
 ### **Application Security**
@@ -191,7 +191,7 @@ curl https://your-app.vercel.app/status?address=test123
 
 ## 📞 **Support Resources**
 
-- **Supabase Docs**: https://supabase.com/docs
+- **Neon Docs**: https://neon.tech/docs
 - **Vercel Docs**: https://vercel.com/docs
 - **PostgreSQL Docs**: https://www.postgresql.org/docs/
 - **Node.js + PostgreSQL**: https://node-postgres.com/
@@ -200,7 +200,7 @@ curl https://your-app.vercel.app/status?address=test123
 
 1. **Monitor user growth** and database performance
 2. **Set up alerts** for high CPU/memory usage
-3. **Implement backup strategy** (Supabase handles this)
+3. **Implement backup strategy** (Neon handles this)
 4. **Consider CDN** for static assets
 5. **Add monitoring** (Sentry, LogRocket, etc.)
 6. **Scale database** if approaching limits

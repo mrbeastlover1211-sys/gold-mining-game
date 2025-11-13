@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solana Gold Mining Game - Token Edition</title>
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+  <script src="https://unpkg.com/@solana/spl-token@0.3.8/lib/index.iife.js"></script>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin: 0;
+      color: #ffd700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .subtitle {
+      color: #4ade80;
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+    
+    .wallet-section {
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .btn {
+      background: linear-gradient(45deg, #4ade80, #22d3ee);
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(74, 222, 128, 0.3);
+    }
+    
+    .btn-purchase {
+      background: linear-gradient(45deg, #f59e0b, #d97706);
+    }
+    
+    .btn-purchase:hover {
+      box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+    }
+    
+    .btn-land {
+      background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+      font-size: 18px;
+      padding: 15px 30px;
+    }
+    
+    .btn-land:hover {
+      box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+    }
+    
+    .btn-mine {
+      background: linear-gradient(45deg, #ef4444, #dc2626);
+      font-size: 20px;
+      padding: 18px 36px;
+    }
+    
+    .btn-mine:hover {
+      box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+    }
+    
+    .game-area {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 20px;
+    }
+    
+    .panel {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .panel h3 {
+      margin-top: 0;
+      color: #ffd700;
+      border-bottom: 2px solid #ffd700;
+      padding-bottom: 10px;
+    }
+    
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .status-item {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #4ade80;
+    }
+    
+    .status-label {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 5px;
+    }
+    
+    .status-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #4ade80;
+    }
+    
+    .pickaxe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .pickaxe-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s ease;
+    }
+    
+    .pickaxe-card:hover {
+      transform: translateY(-5px);
+      border-color: #4ade80;
+    }
+    
+    .pickaxe-icon {
+      font-size: 3em;
+      margin-bottom: 10px;
+    }
+    
+    .pickaxe-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .pickaxe-stats {
+      font-size: 14px;
+      color: #9ca3af;
+      margin-bottom: 15px;
+    }
+    
+    .token-balances {
+      background: rgba(74, 222, 128, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+    
+    .token-balance {
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .token-balance:last-child {
+      border-bottom: none;
+    }
+    
+    .mining-area {
+      text-align: center;
+      padding: 30px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 15px;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      margin: 20px 0;
+    }
+    
+    .status-message {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .warning {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+    }
+    
+    .error {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #f87171;
+    }
+    
+    @media (max-width: 768px) {
+      .game-area {
+        grid-template-columns: 1fr;
+      }
+      
+      .pickaxe-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⛏️ Solana Gold Mining Game</h1>
+      <p class="subtitle">🪙 Token-Based Edition - Own Your Assets!</p>
+      <p>Your pickaxes, land, and gold are stored as SPL tokens in your wallet!</p>
+    </div>
+    
+    <div class="wallet-section">
+      <button id="connect-wallet" class="btn btn-land" onclick="connectWallet()">
+        🔗 Connect Phantom Wallet
+      </button>
+    </div>
+    
+    <div id="game-area" class="game-area">
+      <div class="panel">
+        <h3>👤 Player Status</h3>
+        
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-label">Wallet Address</div>
+            <div class="status-value" id="user-address">Not connected</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Owns Land</div>
+            <div class="status-value" id="has-land">❌ No</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Gold Tokens</div>
+            <div class="status-value" id="gold-amount">0</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Mining Rate/Action</div>
+            <div class="status-value" id="mining-rate">0</div>
+          </div>
+        </div>
+        
+        <!-- Token Balances Display -->
+        <div id="token-balances"></div>
+        
+        <!-- Mining Area -->
+        <div class="mining-area">
+          <h3>⛏️ Mine Gold</h3>
+          <p>Click to convert your pickaxe power into GOLD tokens!</p>
+          <button class="btn btn-mine" onclick="mineGold()">
+            ⚒️ MINE GOLD TOKENS
+          </button>
+        </div>
+        
+        <!-- Current Inventory -->
+        <div id="inventory">
+          <h3>📦 Current Equipment</h3>
+          <p>Loading...</p>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <h3>🛒 Token Shop</h3>
+        
+        <!-- Land Purchase -->
+        <div style="text-align: center; margin: 20px 0;">
+          <button id="land-purchase-btn" class="btn btn-land" onclick="purchaseLand()">
+            🏞️ Buy Land Deed (0.01 SOL)
+          </button>
+          <p style="font-size: 14px; color: #9ca3af;">
+            Receive a LAND token in your wallet!
+          </p>
+        </div>
+        
+        <!-- Pickaxe Shop -->
+        <div class="pickaxe-grid">
+          <div class="pickaxe-card">
+            <div class="pickaxe-icon">⚒️</div>
+            <div class="pickaxe-name">Silver Pickaxe</div>
+            <div class="pickaxe-stats">Rate: 1 | Cost: 0.005 SOL</div>
+            <button class="btn btn-purchase pickaxe-purchase-btn" onclick="purchasePickaxe('silver')">
+              Buy PSILV Token
+            </button>
+          </div>
+          
+          <div class="pickaxe-card">
+            <div class="pickaxe-icon">🪓</div>
+            <div class="pickaxe-name">Gold Pickaxe</div>
+            <div class="pickaxe-stats">Rate: 3 | Cost: 0.01 SOL</div>
+            <button class="btn btn-purchase pickaxe-purchase-btn" onclick="purchasePickaxe('gold')">
+              Buy PGOLD Token
+            </button>
+          </div>
+          
+          <div class="pickaxe-card">
+            <div class="pickaxe-icon">💎</div>
+            <div class="pickaxe-name">Diamond Pickaxe</div>
+            <div class="pickaxe-stats">Rate: 10 | Cost: 0.03 SOL</div>
+            <button class="btn btn-purchase pickaxe-purchase-btn" onclick="purchasePickaxe('diamond')">
+              Buy PDIAM Token
+            </button>
+          </div>
+          
+          <div class="pickaxe-card">
+            <div class="pickaxe-icon">🔥</div>
+            <div class="pickaxe-name">Netherite Pickaxe</div>
+            <div class="pickaxe-stats">Rate: 30 | Cost: 0.1 SOL</div>
+            <button class="btn btn-purchase pickaxe-purchase-btn" onclick="purchasePickaxe('netherite')">
+              Buy PNETH Token
+            </button>
+          </div>
+        </div>
+        
+        <div class="status-message warning">
+          <strong>🪙 Token Ownership:</strong><br>
+          All your game assets are SPL tokens stored in your wallet!<br>
+          You can view them in Phantom or any Solana wallet that supports custom tokens.
+        </div>
+      </div>
+    </div>
+    
+    <!-- Status Messages -->
+    <div id="status" class="status-message" style="display: none;"></div>
+    
+    <div class="status-message">
+      <strong>🔥 New in Token Edition:</strong><br>
+      • Land = LAND token in your wallet<br>
+      • Pickaxes = PSILV, PGOLD, PDIAM, PNETH tokens<br>
+      • Gold = GOLD tokens you can trade or transfer<br>
+      • True ownership - no centralized database!
+    </div>
+  </div>
+  
+  <script src="main-token-based.js"></script>
+  
+  <script>
+    // Show/hide status messages
+    function setStatus(message) {
+      const statusDiv = document.getElementById('status');
+      if (statusDiv) {
+        statusDiv.textContent = message;
+        statusDiv.style.display = 'block';
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 10000);
+      }
+    }
+    
+    // Refresh balances button
+    async function refreshBalances() {
+      if (wallet) {
+        setStatus('Refreshing token balances...');
+        await loadUserTokenBalances();
+        await updateUserStatus();
+        setStatus('✅ Balances refreshed!');
+      }
+    }
+    
+    // Add refresh button
+    document.addEventListener('DOMContentLoaded', function() {
+      const gameArea = document.getElementById('game-area');
+      if (gameArea) {
+        const refreshBtn = document.createElement('button');
+        refreshBtn.className = 'btn';
+        refreshBtn.textContent = '🔄 Refresh Balances';
+        refreshBtn.onclick = refreshBalances;
+        refreshBtn.style.position = 'fixed';
+        refreshBtn.style.top = '20px';
+        refreshBtn.style.right = '20px';
+        refreshBtn.style.zIndex = '1000';
+        document.body.appendChild(refreshBtn);
+      }
+    });
+  </script>
+</body>
+</html>

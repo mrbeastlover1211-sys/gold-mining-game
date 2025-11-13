@@ -1,5 +1,5 @@
 // Database module for Gold Mining Game
-// Supports 100,000+ users with PostgreSQL/Supabase
+// Supports 100,000+ users with PostgreSQL/Neon
 
 import pkg from 'pg';
 const { Pool } = pkg;

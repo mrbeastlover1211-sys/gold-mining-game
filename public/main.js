@@ -1293,9 +1293,14 @@ async function purchaseMandatoryLand() {
     }
 
     console.log('✅ Land purchase confirmed by server, showing success message...');
+    
+    // Show success message immediately and prominently
     showMandatoryLandMessage('🎉 Land purchased successfully! Welcome to the game!', 'success');
     
-    // Close modal after 2 seconds and refresh everything
+    // Enable game functionality immediately
+    console.log('✅ Land purchase confirmed - enabling gameplay');
+    
+    // Close modal after 3 seconds and refresh everything
     setTimeout(async () => {
       console.log('🕒 Closing land modal after successful purchase...');
       
@@ -1312,8 +1317,11 @@ async function purchaseMandatoryLand() {
         window.landCheckTimeout = null;
       }
       
+      // Enable game functionality
+      console.log('🎮 Game functionality enabled - user can now buy pickaxes');
+      
       console.log('✅ Land purchase flow completed successfully');
-    }, 2000);
+    }, 3000);
     
   } catch (e) {
     console.error('Mandatory land purchase failed:', e);

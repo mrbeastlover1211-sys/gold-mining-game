@@ -1091,6 +1091,63 @@ function createMandatoryLandPurchaseModal() {
   document.head.appendChild(style);
 }
 
+// Close mandatory land modal
+function closeMandatoryLandModal() {
+  const modal = document.getElementById('mandatoryLandModal');
+  if (modal) {
+    console.log('🚪 Closing land purchase modal...');
+    
+    // Add fade out animation
+    modal.style.animation = 'fadeOut 0.3s ease-out forwards';
+    
+    // Remove modal after animation
+    setTimeout(() => {
+      modal.remove();
+      console.log('✅ Land modal closed and removed from DOM');
+    }, 300);
+  }
+}
+
+// Show message in mandatory land modal
+function showMandatoryLandMessage(message, type = 'info') {
+  const messageArea = document.getElementById('mandatoryLandMsg');
+  if (messageArea) {
+    messageArea.style.display = 'block';
+    messageArea.textContent = message;
+    
+    // Set message style based on type
+    switch (type) {
+      case 'success':
+        messageArea.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
+        messageArea.style.color = 'white';
+        break;
+      case 'error':
+        messageArea.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
+        messageArea.style.color = 'white';
+        break;
+      case 'info':
+      default:
+        messageArea.style.background = 'linear-gradient(45deg, #007bff, #0056b3)';
+        messageArea.style.color = 'white';
+        break;
+    }
+    
+    console.log(`💬 Land modal message (${type}): ${message}`);
+  }
+}
+
+// Reset purchase button state
+function resetPurchaseButton() {
+  const purchaseBtn = document.getElementById('mandatoryLandPurchaseBtn');
+  if (purchaseBtn) {
+    purchaseBtn.disabled = false;
+    purchaseBtn.style.opacity = '1';
+    purchaseBtn.style.cursor = 'pointer';
+    purchaseBtn.textContent = '🏠 Purchase Land (0.01 SOL)';
+    console.log('🔄 Purchase button reset to default state');
+  }
+}
+
 // Create land purchase modal dynamically (legacy)
 function createLandPurchaseModal() {
   const modalHTML = `

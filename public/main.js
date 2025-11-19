@@ -1369,15 +1369,16 @@ async function purchaseMandatoryLand() {
     // Reset button state on success
     resetPurchaseButton();
     
-    // Close modal after 3 seconds and refresh everything
-    setTimeout(async () => {
-      console.log('🕒 Closing land modal after successful purchase...');
-      
-      // Force refresh user status first to get updated land ownership
-      await refreshStatus();
-      await updateWalletBalance();
-      
-      // Then close modal
+    // Close modal immediately after successful purchase
+    console.log('🕒 Closing land modal immediately after successful purchase...');
+    
+    // Force refresh user status first to get updated land ownership
+    await refreshStatus();
+    await updateWalletBalance();
+    
+    // Close modal with shorter delay to show success message briefly
+    setTimeout(() => {
+      console.log('🚪 Now closing modal after showing success...');
       closeMandatoryLandModal();
       
       // Clear any existing land check timers
@@ -1390,7 +1391,7 @@ async function purchaseMandatoryLand() {
       console.log('🎮 Game functionality enabled - user can now buy pickaxes');
       
       console.log('✅ Land purchase flow completed successfully');
-    }, 3000);
+    }, 1500); // Reduced from 3000 to 1500ms for faster closing
     
   } catch (e) {
     console.error('Mandatory land purchase failed:', e);

@@ -1369,29 +1369,62 @@ async function purchaseMandatoryLand() {
     // Reset button state on success
     resetPurchaseButton();
     
-    // Close modal immediately after successful purchase
-    console.log('🕒 Closing land modal immediately after successful purchase...');
+    // FORCE CLOSE MODAL IMMEDIATELY - Multiple attempts for reliability
+    console.log('🚪 FORCE CLOSING MODAL IMMEDIATELY after successful purchase...');
     
-    // Force refresh user status first to get updated land ownership
-    await refreshStatus();
-    await updateWalletBalance();
-    
-    // Close modal with shorter delay to show success message briefly
-    setTimeout(() => {
-      console.log('🚪 Now closing modal after showing success...');
+    // Attempt 1: Close immediately
+    try {
       closeMandatoryLandModal();
-      
-      // Clear any existing land check timers
-      if (window.landCheckTimeout) {
-        clearTimeout(window.landCheckTimeout);
-        window.landCheckTimeout = null;
+      console.log('✅ Attempt 1: Modal close initiated immediately');
+    } catch (e) {
+      console.error('❌ Attempt 1 failed:', e);
+    }
+    
+    // Attempt 2: Close after very short delay
+    setTimeout(() => {
+      try {
+        console.log('🚪 Attempt 2: Closing modal after 500ms...');
+        const modal = document.getElementById('mandatoryLandModal');
+        if (modal) {
+          modal.remove();
+          console.log('✅ Attempt 2: Modal force removed from DOM');
+        } else {
+          console.log('✅ Attempt 2: Modal already gone');
+        }
+      } catch (e) {
+        console.error('❌ Attempt 2 failed:', e);
       }
-      
-      // Enable game functionality
-      console.log('🎮 Game functionality enabled - user can now buy pickaxes');
-      
-      console.log('✅ Land purchase flow completed successfully');
-    }, 1500); // Reduced from 3000 to 1500ms for faster closing
+    }, 500);
+    
+    // Attempt 3: Close after 1 second with full cleanup
+    setTimeout(() => {
+      try {
+        console.log('🚪 Attempt 3: Final cleanup after 1s...');
+        
+        // Remove modal by ID
+        const modal = document.getElementById('mandatoryLandModal');
+        if (modal) {
+          modal.remove();
+          console.log('✅ Attempt 3: Modal removed');
+        }
+        
+        // Clear any existing land check timers
+        if (window.landCheckTimeout) {
+          clearTimeout(window.landCheckTimeout);
+          window.landCheckTimeout = null;
+        }
+        
+        // Force refresh user status to get updated land ownership
+        refreshStatus();
+        updateWalletBalance();
+        
+        console.log('🎮 Game functionality enabled - user can now buy pickaxes');
+        console.log('✅ Land purchase flow completed successfully');
+        
+      } catch (e) {
+        console.error('❌ Attempt 3 failed:', e);
+      }
+    }, 1000);
     
   } catch (e) {
     console.error('Mandatory land purchase failed:', e);
